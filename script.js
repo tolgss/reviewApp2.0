@@ -792,47 +792,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   fileInput.addEventListener("change", e => {
     const file = e.target.files[0];
     if (!file) {
-      alert("No file selected!");
+      showError("No file selected!");
       return;
-    }
+    } 
   
     const reader = new FileReader();
   
-    // This should fire as soon as the file is read
-    reader.onloadstart = () => {
-      console.log("▶ reader.onloadstart");
-      alert("Starting to read file…");
-    };
-  
     reader.onload = () => {
-      console.log("▶ reader.onload");
-      alert("File read complete, size = " + reader.result.length + " chars");
-  
       let parsed;
       try {
         parsed = JSON.parse(reader.result);
-        console.log("✔ JSON parsed:", parsed);
-        alert("Parsed JSON, top-level type: " + (Array.isArray(parsed) ? "Array" : typeof parsed));
       } catch (err) {
-        console.error("✘ JSON parse error:", err);
-        alert("Failed to parse JSON:\n" + err.message);
+        showError("Failed to parse JSON: " + err.message);
         return;
       }
   
-      // For sanity, check array length or object keys
-      if (Array.isArray(parsed)) {
-        alert("Array has " + parsed.length + " items");
-      } else {
-        alert("Object has keys: " + Object.keys(parsed).join(", "));
-      }
-  
-      // Now assign to your app state
+      // assign to app state
       data = parsed;
   
-      // Show data.length in the UI immediately
-      document.getElementById("cardCount").textContent = "Total cards: " + (data.length ?? "—");
+      // update card count immediately
+      document.getElementById("cardCount").textContent =
+        "Total cards: " + (Array.isArray(data) ? data.length : "—");
   
-      // update UI
+      // reveal the import controls
       updateCardCount();
       document.getElementById("importControls").style.display = "flex";
       document.getElementById("tagFilterContainer").style.display = "block";
@@ -843,24 +825,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       lotIndex = 1;
       currentIndex = 0;
   
-      // Before running showTagFilters(), let's log what data is
-      console.log("About to call showTagFilters(), data:", data);
-      alert("Calling showTagFilters now…");
       showTagFilters();
     };
   
     reader.onerror = () => {
-      console.error("FileReader error:", reader.error);
-      alert("Could not read file:\n" + reader.error);
+      showError("Could not read file: " + reader.error);
     };
   
-    try {
-      reader.readAsText(file);
-    } catch (err) {
-      console.error("readAsText threw:", err);
-      alert("Unexpected error reading file:\n" + err.message);
-    }
+    reader.readAsText(file);
   });
+  
   
   
   
